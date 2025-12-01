@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Café Yogyakarta - Peta Interaktif</title>
+    
+    <!-- Leaflet Map Library -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="frendy_style.css">
+</head>
+<body>
+    <!-- Map Container -->
+    <div id="map" class="map-container"></div>
+    
+    <!-- Dark Mode Toggle Button -->
+    <button class="dark-mode-toggle" id="darkModeToggle" title="Toggle Dark Mode">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+        </svg>
+    </button>
+    
+    <!-- Location Request Button -->
+    <button class="location-btn" id="locationBtn" title="Use My Location">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+            <circle cx="12" cy="10" r="3"></circle>
+        </svg>
+    </button>
+    
+    <!-- Top Search Bar (Floating) -->
+    <div class="top-bar">
+        <div class="search-container">
+            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"></circle>
+                <path d="m21 21-4.35-4.35"></path>
+            </svg>
+            <input 
+                type="text" 
+                id="searchInput" 
+                class="search-input" 
+                placeholder="Cari café di Yogyakarta..."
+                autocomplete="off"
+            >
+        </div>
+        <div id="searchResults" class="search-results hidden"></div>
+    </div>
+    
+    <!-- Bottom Navigation Bar (Fixed) -->
+    <nav class="bottom-nav">
+        <button class="nav-item active" data-tab="map" title="Peta">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                <circle cx="12" cy="10" r="3"></circle>
+            </svg>
+            <span>Peta</span>
+        </button>
+        <button class="nav-item" data-tab="list" title="Daftar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="8" y1="6" x2="21" y2="6"></line>
+                <line x1="8" y1="12" x2="21" y2="12"></line>
+                <line x1="8" y1="18" x2="21" y2="18"></line>
+                <line x1="3" y1="6" x2="3.01" y2="6"></line>
+                <line x1="3" y1="12" x2="3.01" y2="12"></line>
+                <line x1="3" y1="18" x2="3.01" y2="18"></line>
+            </svg>
+            <span>Daftar</span>
+        </button>
+        <button class="nav-item" data-tab="info" title="Info">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="16" x2="12" y2="12"></line>
+                <line x1="12" y1="8" x2="12.01" y2="8"></line>
+            </svg>
+            <span>Info</span>
+        </button>
+    </nav>
+    
+    <!-- List Container (Hidden by default) -->
+    <div id="listContainer" class="list-container hidden">
+        <div class="list-header">
+            <h2>Café di Yogyakarta</h2>
+            <button class="close-btn" id="closeListBtn">✕</button>
+        </div>
+        <div class="cafe-list" id="cafeList">
+            <!-- Cafe cards akan diisi oleh JavaScript -->
+        </div>
+    </div>
+    
+    <!-- Info Modal (Hidden by default) -->
+    <div id="infoModal" class="info-modal hidden">
+        <div class="modal-content">
+            <button class="close-btn" id="closeInfoBtn">✕</button>
+            <h2>Tentang Aplikasi</h2>
+            <div class="info-body">
+                <p><strong>Café Yogyakarta</strong> adalah aplikasi peta interaktif yang membantu Anda menemukan café-café terbaik di Yogyakarta.</p>
+                
+                <h3>Fitur:</h3>
+                <ul>
+                    <li>📍 Peta interaktif dengan lokasi semua café</li>
+                    <li>🔍 Fitur pencarian café berdasarkan nama</li>
+                    <li>⭐ Rating dan informasi detail setiap café</li>
+                    <li>📱 Responsif dan mobile-friendly</li>
+                </ul>
+                
+                <h3>Cara Menggunakan:</h3>
+                <ol>
+                    <li>Klik ikon <strong>Peta</strong> untuk melihat lokasi café</li>
+                    <li>Klik ikon <strong>Daftar</strong> untuk melihat daftar semua café</li>
+                    <li>Gunakan kotak pencarian untuk mencari café spesifik</li>
+                    <li>Klik marker di peta atau item di daftar untuk melihat detail</li>
+                </ol>
+                
+                <h3>Teknologi:</h3>
+                <p>Dibuat dengan HTML5, CSS3, JavaScript, dan Leaflet.js</p>
+                
+                <p style="margin-top: 20px; font-size: 12px; color: #7c3aed;">
+                    Data café diambil dari Google Maps Yogyakarta
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Data global
+        let cafesData = [];
+        let map;
+        let markers = [];
+        let filteredCafes = [];
+        let userLocation = null;
+        let userMarker = null;
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            loadData().then(() => {
+                initMap();
+                setupEventListeners();
+                setupDarkModeToggle();
+                setupLocationButton();
+                // Tidak auto-request location lagi
+            });
+        });
+        
+        // Load data dari data.json
+        async function loadData() {
+            try {
+                const response = await fetch('data.json');
+                cafesData = await response.json();
+                filteredCafes = [...cafesData];
+                console.log(`Loaded ${cafesData.length} cafes`);
+                return true;
+            } catch (error) {
+                console.error('Error loading data:', error);
+                return false;
+            }
+        }
+        
+        // Initialize Leaflet Map
+        function initMap() {
+            // Centered di Yogyakarta
+            map = L.map('map').setView([-7.7725, 110.3703], 13);
+            
+            // Tile Layer
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors',
+                maxZoom: 19
+            }).addTo(map);
+            
+            // Render markers
+            renderMarkers();
+        }
+        
+        // Get user location
+        function getUserLocation() {
+            if (navigator.geolocation) {
+                const options = {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 0
+                };
+                
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        userLocation = {
+                            lat: position.coords.latitude,
+                            lng: position.coords.longitude
+                        };
+                        
+                        console.log('User location obtained:', userLocation);
+                        
+                        // Add user marker di peta
+                        if (userMarker) {
+                            map.removeLayer(userMarker);
+                        }
+                        
+                        const blueIcon = L.icon({
+                            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
+                            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+                            iconSize: [25, 41],
+                            iconAnchor: [12, 41],
+                            popupAnchor: [1, -34],
+                            shadowSize: [41, 41]
+                        });
+                        
+                        userMarker = L.marker([userLocation.lat, userLocation.lng], { icon: blueIcon })
+                            .bindPopup('📍 Lokasi Saya')
+                            .addTo(map);
+                        
+                        // Zoom to user location
+                        map.setView([userLocation.lat, userLocation.lng], 15);
+                        
+                        // Refresh café list to show distances
+                        renderCafeList();
+                    },
+                    (error) => {
+                        console.error('Geolocation error:', error.code, error.message);
+                        let errorMsg = 'Tidak dapat mendapatkan lokasi';
+                        
+                        switch(error.code) {
+                            case error.PERMISSION_DENIED:
+                                errorMsg = 'Izin lokasi ditolak. Silakan aktifkan di pengaturan browser.';
+                                break;
+                            case error.POSITION_UNAVAILABLE:
+                                errorMsg = 'Informasi lokasi tidak tersedia.';
+                                break;
+                            case error.TIMEOUT:
+                                errorMsg = 'Permintaan lokasi timeout. Coba lagi.';
+                                break;
+                        }
+                        
+                        alert(errorMsg);
+                    },
+                    options
+                );
+            } else {
+                alert('Geolocation tidak didukung browser Anda');
+            }
+        }
+        
+        // Setup Dark Mode Toggle
+        function setupDarkModeToggle() {
+            const toggle = document.getElementById('darkModeToggle');
+            
+            // Load saved preference
+            const isDarkMode = localStorage.getItem('darkMode') === 'true';
+            if (isDarkMode) {
+                document.body.classList.add('dark-mode');
+                applyDarkModeStyles(toggle);
+            }
+            
+            toggle.addEventListener('click', () => {
+                document.body.classList.toggle('dark-mode');
+                const isDark = document.body.classList.contains('dark-mode');
+                localStorage.setItem('darkMode', isDark);
+                
+                // Force reapply styles
+                if (isDark) {
+                    applyDarkModeStyles(toggle);
+                } else {
+                    removeDarkModeStyles(toggle);
+                }
+            });
+        }
+        
+        // Apply explicit dark mode styles to toggle button
+        function applyDarkModeStyles(toggle) {
+            toggle.style.background = '#1f2937';
+            toggle.style.borderColor = '#86efac';
+            toggle.style.color = '#86efac';
+        }
+        
+        // Remove dark mode styles from toggle button
+        function removeDarkModeStyles(toggle) {
+            toggle.style.background = '';
+            toggle.style.borderColor = '';
+            toggle.style.color = '';
+        }
+        
+        // Setup Location Button
+        function setupLocationButton() {
+            const btn = document.getElementById('locationBtn');
+            
+            btn.addEventListener('click', () => {
+                btn.classList.add('loading');
+                console.log('Location button clicked - requesting geolocation');
+                
+                getUserLocation();
+                
+                // Disable button for 3 seconds
+                setTimeout(() => {
+                    btn.classList.remove('loading');
+                }, 3000);
+            });
+        }
+        
+        // Calculate distance between two points (in km)
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371; // Radius of Earth in km
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = 
+                Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                Math.sin(dLon/2) * Math.sin(dLon/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            return R * c;
+        }
+        
+        // Render markers di peta
+        function renderMarkers() {
+            // Hapus marker lama
+            markers.forEach(marker => map.removeLayer(marker));
+            markers = [];
+            
+            // Buat custom icon
+            const greenIcon = L.icon({
+                iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
+                shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+                iconSize: [25, 41],
+                iconAnchor: [12, 41],
+                popupAnchor: [1, -34],
+                shadowSize: [41, 41]
+            });
+            
+            // Tambah marker untuk setiap cafe
+            filteredCafes.forEach(cafe => {
+                const marker = L.marker([cafe.latitude, cafe.longitude], { icon: greenIcon })
+                    .bindPopup(createPopup(cafe), { maxWidth: 300, className: 'custom-popup' })
+                    .addTo(map);
+                
+                marker.cafe = cafe;
+                marker.cafeId = cafe.id;
+                marker.on('click', () => {
+                    // Buka popup saat marker diklik
+                });
+                
+                markers.push(marker);
+            });
+        }
+        
+        // Create custom popup
+        function createPopup(cafe) {
+            return `
+                <div class="popup-content">
+                    <img src="${cafe.foto}" alt="${cafe.nama}" class="popup-image" onerror="this.src='https://placehold.co/300x200?text=${encodeURIComponent(cafe.nama)}'">
+                    <div class="popup-info">
+                        <h3 class="popup-title">${cafe.nama}</h3>
+                        <div class="popup-rating">
+                            <span class="stars">⭐ ${cafe.rating}</span>
+                        </div>
+                        <p class="popup-address">📍 ${cafe.alamat}</p>
+                        <a href="https://www.google.com/maps?q=${cafe.latitude},${cafe.longitude}" target="_blank" class="popup-button">
+                            Navigasi
+                        </a>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Render cafe list
+        function renderCafeList() {
+            const cafeList = document.getElementById('cafeList');
+            cafeList.innerHTML = '';
+            
+            // Sort by distance if user location available
+            let sortedCafes = [...filteredCafes];
+            if (userLocation) {
+                sortedCafes.sort((a, b) => {
+                    const distA = calculateDistance(userLocation.lat, userLocation.lng, a.latitude, a.longitude);
+                    const distB = calculateDistance(userLocation.lat, userLocation.lng, b.latitude, b.longitude);
+                    return distA - distB;
+                });
+            }
+            
+            if (sortedCafes.length === 0) {
+                cafeList.innerHTML = '<p class="no-results">Tidak ada café yang ditemukan</p>';
+                return;
+            }
+            
+            sortedCafes.forEach(cafe => {
+                const distance = userLocation ? calculateDistance(userLocation.lat, userLocation.lng, cafe.latitude, cafe.longitude).toFixed(2) : null;
+                
+                const card = document.createElement('div');
+                card.className = 'cafe-card';
+                card.innerHTML = `
+                    <img src="${cafe.foto}" alt="${cafe.nama}" class="card-image" onerror="this.src='https://placehold.co/120x120?text=${encodeURIComponent(cafe.nama)}'">
+                    <div class="card-info">
+                        <h3 class="card-title">${cafe.nama}</h3>
+                        <div class="card-rating">
+                            <span class="stars">⭐ ${cafe.rating}</span>
+                        </div>
+                        <p class="card-address">${cafe.alamat.substring(0, 50)}...</p>
+                        ${distance ? `<p class="card-distance">📍 ${distance} km dari Anda</p>` : ''}
+                    </div>
+                    <button class="card-nav-btn" title="Navigasi">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                            <circle cx="12" cy="10" r="3"></circle>
+                        </svg>
+                    </button>
+                `;
+                
+                // Click on card untuk fly to dan buka popup
+                const cardContent = card.querySelector('.card-info');
+                cardContent.addEventListener('click', () => {
+                    // Tutup list
+                    document.getElementById('listContainer').classList.add('hidden');
+                    document.getElementById('map').classList.remove('hidden');
+                    document.querySelector('[data-tab="map"]').classList.add('active');
+                    document.querySelector('[data-tab="list"]').classList.remove('active');
+                    
+                    // Invalidate map size
+                    setTimeout(() => {
+                        map.invalidateSize();
+                        
+                        // Fly to location dan buka popup
+                        map.flyTo([cafe.latitude, cafe.longitude], 16);
+                        const marker = markers.find(m => m.cafeId === cafe.id);
+                        if (marker) {
+                            setTimeout(() => {
+                                marker.openPopup();
+                            }, 500);
+                        }
+                    }, 100);
+                });
+                
+                // Tombol navigasi untuk buka Google Maps
+                const navBtn = card.querySelector('.card-nav-btn');
+                navBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    window.open(`https://www.google.com/maps?q=${cafe.latitude},${cafe.longitude}`, '_blank');
+                });
+                
+                cafeList.appendChild(card);
+            });
+        }
+        
+        // Setup event listeners
+        function setupEventListeners() {
+            // Bottom nav tabs
+            document.querySelectorAll('.nav-item').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const tab = btn.getAttribute('data-tab');
+                    switchTab(tab);
+                    
+                    // Update active button
+                    document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                });
+            });
+            
+            // Search functionality
+            const searchInput = document.getElementById('searchInput');
+            const searchResults = document.getElementById('searchResults');
+            
+            searchInput.addEventListener('input', (e) => {
+                const query = e.target.value.toLowerCase().trim();
+                
+                if (query === '') {
+                    searchResults.classList.add('hidden');
+                } else {
+                    const results = cafesData.filter(cafe =>
+                        cafe.nama.toLowerCase().includes(query) ||
+                        cafe.alamat.toLowerCase().includes(query)
+                    );
+                    
+                    // Show search results dropdown
+                    if (results.length > 0) {
+                        searchResults.innerHTML = results.slice(0, 5).map(cafe => `
+                            <div class="search-result-item" data-id="${cafe.id}">
+                                <strong>${cafe.nama}</strong>
+                                <small>${cafe.alamat}</small>
+                            </div>
+                        `).join('');
+                        searchResults.classList.remove('hidden');
+                        
+                        // Add click handler to search results
+                        document.querySelectorAll('.search-result-item').forEach(item => {
+                            item.addEventListener('click', () => {
+                                const cafeId = parseInt(item.getAttribute('data-id'));
+                                const cafe = cafesData.find(c => c.id === cafeId);
+                                if (cafe) {
+                                    searchInput.value = cafe.nama;
+                                    searchResults.classList.add('hidden');
+                                    
+                                    // Tampilkan map
+                                    document.getElementById('map').classList.remove('hidden');
+                                    document.getElementById('listContainer').classList.add('hidden');
+                                    document.getElementById('infoModal').classList.add('hidden');
+                                    document.querySelector('[data-tab="map"]').classList.add('active');
+                                    document.querySelector('[data-tab="list"]').classList.remove('active');
+                                    document.querySelector('[data-tab="info"]').classList.remove('active');
+                                    
+                                    setTimeout(() => {
+                                        map.invalidateSize();
+                                        map.flyTo([cafe.latitude, cafe.longitude], 16);
+                                        const marker = markers.find(m => m.cafeId === cafe.id);
+                                        if (marker) {
+                                            setTimeout(() => {
+                                                marker.openPopup();
+                                            }, 500);
+                                        }
+                                    }, 100);
+                                }
+                            });
+                        });
+                    } else {
+                        searchResults.classList.add('hidden');
+                    }
+                }
+            });
+            
+            // Close search results when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!e.target.closest('.search-container')) {
+                    searchResults.classList.add('hidden');
+                }
+            });
+            
+            // Close list button
+            document.getElementById('closeListBtn').addEventListener('click', () => {
+                document.getElementById('listContainer').classList.add('hidden');
+                document.getElementById('map').classList.remove('hidden');
+                document.querySelector('[data-tab="map"]').classList.add('active');
+                document.querySelector('[data-tab="list"]').classList.remove('active');
+                setTimeout(() => map.invalidateSize(), 0);
+            });
+            
+            // Close info button
+            document.getElementById('closeInfoBtn').addEventListener('click', () => {
+                document.getElementById('infoModal').classList.add('hidden');
+                document.getElementById('map').classList.remove('hidden');
+                document.querySelector('[data-tab="map"]').classList.add('active');
+                document.querySelector('[data-tab="info"]').classList.remove('active');
+                setTimeout(() => map.invalidateSize(), 0);
+            });
+        }
+        
+        // Switch tabs
+        function switchTab(tab) {
+            document.getElementById('map').classList.add('hidden');
+            document.getElementById('listContainer').classList.add('hidden');
+            document.getElementById('infoModal').classList.add('hidden');
+            
+            if (tab === 'map') {
+                document.getElementById('map').classList.remove('hidden');
+                setTimeout(() => map.invalidateSize(), 0);
+                // Pastikan markers ada - render jika kosong
+                if (markers.length === 0) {
+                    renderMarkers();
+                }
+            } else if (tab === 'list') {
+                document.getElementById('listContainer').classList.remove('hidden');
+                renderCafeList();
+            } else if (tab === 'info') {
+                document.getElementById('infoModal').classList.remove('hidden');
+            }
+        }
+    </script>
+</body>
+</html>
